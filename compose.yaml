@@ -9,6 +9,12 @@ networks:
 
 volumes:
   pgdata:
+  # gitlab-config:
+  # gitlab-logs:
+  # gitlab-data:
+  # prometheus-data:
+  # grafana-data:
+  # loki-data:
 
 services:
   app:
