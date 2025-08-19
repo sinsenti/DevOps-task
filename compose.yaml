@@ -48,8 +48,8 @@ services:
     networks:
       - devnet
     ports:
-      - "8081:80" # HTTP mapped to 8081 on host
-      - "2224:22" # SSH for Git mapped to 2224 on host
+      - "8081:80"
+      - "2224:22"
     volumes:
       - gitlab-config:/etc/gitlab
       - gitlab-logs:/var/log/gitlab
