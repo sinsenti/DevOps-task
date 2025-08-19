@@ -10,6 +10,9 @@ volumes:
   gitlab-config:
   gitlab-logs:
   gitlab-data:
+  prometheus-data:
+  grafana-data:
+  loki-data:
 
 services:
   app:
@@ -45,12 +48,57 @@ services:
     container_name: gitlab
     restart: always
     hostname: localhost
+    # profiles:
+    #   - manual
     networks:
       - devnet
-    ports:
-      - "8081:80"
-      - "2224:22"
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://gitlab.local'
+        registry_external_url 'http://gitlab.local:5050'
+        gitlab_rails['registry_enabled'] = true
     volumes:
       - gitlab-config:/etc/gitlab
       - gitlab-logs:/var/log/gitlab
       - gitlab-data:/var/opt/gitlab
+    ports:
+      - "8081:80"
+      - "2224:22"
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: dev_prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - devnet
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: dev_grafana
+    depends_on:
+      - prometheus
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: "admin"
+    ports:
+      - "3000:3000"
+    networks:
+      - devnet
+
+  loki:
+    image: grafana/loki:2.8.2
+    container_name: dev_loki
+    volumes:
+      - ./loki/loki-config.yaml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - devnet
